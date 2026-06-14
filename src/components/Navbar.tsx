@@ -9,6 +9,36 @@ import { servicesData } from "@/data/services";
 import { ChevronDown, Menu, X, MessageSquare, PhoneCall, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const containerVariants = {
+  hidden: { opacity: 0, height: 0 },
+  show: {
+    opacity: 1,
+    height: "auto",
+    transition: {
+      height: { type: "spring" as const, stiffness: 80, damping: 15 },
+      staggerChildren: 0.04,
+      delayChildren: 0.05
+    }
+  },
+  exit: {
+    opacity: 0,
+    height: 0,
+    transition: {
+      height: { duration: 0.25 },
+      opacity: { duration: 0.15 }
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { 
+    opacity: 1, 
+    y: 0,
+    transition: { type: "spring" as const, stiffness: 120, damping: 12 } 
+  }
+};
+
 export const Navbar: React.FC = () => {
   const { t } = useLanguage();
   const pathname = usePathname();
@@ -272,14 +302,14 @@ export const Navbar: React.FC = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="md:hidden bg-surface dark:bg-slate-950 border-b border-outline-variant/30 shadow-xl overflow-hidden w-full absolute top-full left-0 z-40"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            className="md:hidden bg-surface/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-secondary/20 shadow-2xl overflow-hidden w-full absolute top-full left-0 z-40"
           >
             <div className="px-margin-mobile py-6 flex flex-col space-y-4">
-              <div className="flex flex-col space-y-2">
+              <motion.div variants={itemVariants} className="flex flex-col space-y-2">
                 <span className="font-bold text-xs tracking-wider text-outline uppercase pl-2">Services</span>
                 <div className="grid grid-cols-2 gap-2 pl-2">
                   {servicesData.slice(0, 6).map((service) => (
@@ -298,42 +328,52 @@ export const Navbar: React.FC = () => {
                     All Services ({servicesData.length}) »
                   </Link>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="h-px bg-outline-variant/30 w-full" />
+              <motion.div variants={itemVariants} className="h-px bg-outline-variant/30 w-full" />
 
-              <Link
-                href="/about"
-                className="text-base font-semibold text-on-surface dark:text-surface-bright hover:text-secondary py-2 pl-2"
-              >
-                {t("navAbout")}
-              </Link>
-              <Link
-                href="/#why-us"
-                className="text-base font-semibold text-on-surface dark:text-surface-bright hover:text-secondary py-2 pl-2"
-              >
-                {t("navWhyUs")}
-              </Link>
-              <Link
-                href="/faq"
-                className="text-base font-semibold text-on-surface dark:text-surface-bright hover:text-secondary py-2 pl-2"
-              >
-                {t("navFAQ")}
-              </Link>
-              <Link
-                href="/contact"
-                className="text-base font-semibold text-on-surface dark:text-surface-bright hover:text-secondary py-2 pl-2"
-              >
-                {t("navContact")}
-              </Link>
+              <motion.div variants={itemVariants}>
+                <Link
+                  href="/about"
+                  className="block text-base font-semibold text-on-surface dark:text-surface-bright hover:text-secondary py-2 pl-2"
+                >
+                  {t("navAbout")}
+                </Link>
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <Link
+                  href="/#why-us"
+                  className="block text-base font-semibold text-on-surface dark:text-surface-bright hover:text-secondary py-2 pl-2"
+                >
+                  {t("navWhyUs")}
+                </Link>
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <Link
+                  href="/faq"
+                  className="block text-base font-semibold text-on-surface dark:text-surface-bright hover:text-secondary py-2 pl-2"
+                >
+                  {t("navFAQ")}
+                </Link>
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <Link
+                  href="/contact"
+                  className="block text-base font-semibold text-on-surface dark:text-surface-bright hover:text-secondary py-2 pl-2"
+                >
+                  {t("navContact")}
+                </Link>
+              </motion.div>
 
-              <button
-                onClick={handleWhatsAppClick}
-                className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition-all shadow-md"
-              >
-                <MessageSquare className="w-5 h-5 fill-white text-green-500" />
-                <span>Contact on WhatsApp</span>
-              </button>
+              <motion.div variants={itemVariants} className="pt-2">
+                <button
+                  onClick={handleWhatsAppClick}
+                  className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition-all shadow-md cursor-pointer"
+                >
+                  <MessageSquare className="w-5 h-5 fill-white text-green-500" />
+                  <span>Contact on WhatsApp</span>
+                </button>
+              </motion.div>
             </div>
           </motion.div>
         )}

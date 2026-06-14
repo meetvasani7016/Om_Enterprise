@@ -1,24 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0f172a;
-  --color-secondary: #0058be;
-  --color-background: #f8f9ff;
-  --color-on-surface: #0b1c30;
-  --color-on-surface-variant: #45464d;
-  --color-outline: #76777d;
-  --color-outline-variant: #c6c6cd;
-  --color-surface: #f8f9ff;
-  --color-surface-container-low: #eff4ff;
-  --color-surface-container: #e5eeff;
-  --color-surface-container-high: #dce9ff;
-  --color-surface-container-highest: #d3e4fe;
-  --color-surface-container-lowest: #ffffff;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
+  --color-primary: #030712;
+  --color-secondary: #c5a880; /* Champagne Gold */
+  --color-gold: #c5a880;
+  --color-gold-light: #dfc5a0;
+  --color-bronze: #8c7255;
+  --color-background: #030712;
+  --color-on-surface: #e2e8f0;
+  --color-on-surface-variant: #94a3b8;
+  --color-outline: #475569;
+  --color-outline-variant: #334155;
+  --color-surface: #0a1128;
+  --color-surface-container-low: #080c1e;
+  --color-surface-container: #0e1630;
+  --color-surface-container-high: #141f44;
+  --color-surface-container-highest: #1a2858;
+  --color-surface-container-lowest: #040817;
+  --color-on-primary: #030712;
+  --color-on-secondary: #030712;
 
   --font-sans: var(--font-inter), sans-serif;
-  --font-display: var(--font-geist-sans), sans-serif;
+  --font-display: var(--font-playfair), serif;
   --font-mono: var(--font-geist-mono), monospace;
 
   --radius-lg: 0.5rem;
@@ -30,33 +33,41 @@
 }
 
 :root {
-  --background: #f8f9ff;
-  --foreground: #0b1c30;
+  --background: #030712;
+  --foreground: #e2e8f0;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 18px;
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-playfair), serif;
 }
 
-/* Glassmorphism Styles */
+/* Glassmorphism Styles - Mapped to Luxury Dark Theme */
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: saturate(180%) blur(20px);
-  border: 1px solid rgba(229, 231, 235, 0.5);
+  background: rgba(10, 17, 40, 0.65);
+  backdrop-filter: saturate(180%) blur(25px);
+  border: 1px solid rgba(197, 168, 128, 0.12);
 }
 
 .dark .glass-card {
-  background: rgba(19, 27, 46, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 17, 40, 0.65);
+  border: 1px solid rgba(197, 168, 128, 0.12);
 }
 
-/* Premium Border Highlights */
+/* Premium Border Highlights with Golden Tint */
 .premium-border {
   position: relative;
 }
@@ -69,9 +80,9 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: inherit;
   background: linear-gradient(
     to bottom right,
-    rgba(0, 88, 190, 0.2),
-    transparent,
-    rgba(0, 88, 190, 0.1)
+    rgba(197, 168, 128, 0.35),
+    transparent 50%,
+    rgba(140, 114, 85, 0.2)
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -87,4 +98,65 @@ h1, h2, h3, h4, h5, h6 {
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Keyframes & Utilities for Luxury Motion */
+@keyframes shine {
+  0% {
+    left: -100%;
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.3;
+  }
+  60% {
+    opacity: 0.3;
+  }
+  100% {
+    left: 200%;
+    opacity: 0;
+  }
+}
+
+.animate-shine {
+  animation: shine 1.6s ease-in-out infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-20px) translateX(10px);
+  }
+}
+
+@keyframes float-medium {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-15px) translateX(-10px);
+  }
+}
+
+@keyframes float-fast {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(5px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float-medium 6s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float-fast 4s ease-in-out infinite;
 }

@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { MouseGlow } from "@/components/MouseGlow";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
   display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 const inter = Inter({
@@ -42,6 +38,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "Om Enterprise | Trusted Business Compliance Partner",
     description: "Simplifying GST, MSME, ITR, Passports, and legal agreements for Indian entrepreneurs. Rajkot-based, Pan-India support.",
@@ -65,10 +70,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} h-full scroll-smooth`}
+      className={`${playfair.variable} ${inter.variable} h-full scroll-smooth`}
     >
       <body className="bg-background text-on-surface font-sans overflow-x-hidden min-h-full flex flex-col antialiased selection:bg-secondary/20">
         <LanguageProvider>
+          <MouseGlow />
           <Navbar />
           <main className="flex-grow pt-20">
             {children}

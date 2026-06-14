@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { FAQAccordion } from "@/components/FAQAccordion";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { servicesData } from "@/data/services";
 import { HelpCircle, Search, HelpCircle as HelpIcon } from "lucide-react";
 
@@ -55,11 +56,11 @@ export default function FAQPage() {
   );
 
   return (
-    <div className="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12 pb-24">
+    <div className="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12 pb-24 overflow-hidden">
       <Breadcrumbs items={breadcrumbs} />
 
       {/* Header */}
-      <div className="mb-12 space-y-4 max-w-3xl">
+      <ScrollReveal direction="up" className="mb-12 space-y-4 max-w-3xl">
         <div className="inline-flex items-center gap-1.5 text-secondary font-bold text-xs uppercase tracking-wider">
           <HelpIcon className="w-4 h-4" />
           <span>Centralized Help Desk</span>
@@ -70,10 +71,10 @@ export default function FAQPage() {
         <p className="text-on-surface-variant dark:text-slate-400 text-base md:text-lg leading-relaxed">
           Search our comprehensive database covering general business registration guidelines, GST compliance, MSME schemes, and personal documentation rules.
         </p>
-      </div>
+      </ScrollReveal>
 
       {/* Search Input */}
-      <div className="relative max-w-xl mb-12">
+      <ScrollReveal direction="up" delay={0.15} className="relative max-w-xl mb-12">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant dark:text-slate-400">
           <Search className="w-5 h-5" />
         </div>
@@ -84,30 +85,35 @@ export default function FAQPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-white dark:bg-slate-950 border border-outline-variant/60 dark:border-slate-800 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-secondary focus:border-transparent outline-none transition-all text-on-surface dark:text-surface-bright shadow-sm"
         />
-      </div>
+      </ScrollReveal>
 
       {/* FAQ Accordion Grid */}
       {filteredFAQs.length > 0 ? (
         <div className="space-y-12">
           {/* Grouped by Category */}
-          {Array.from(new Set(filteredFAQs.map((faq) => faq.category))).map((category) => {
+          {Array.from(new Set(filteredFAQs.map((faq) => faq.category))).map((category, index) => {
             const categoryFAQs = filteredFAQs.filter((faq) => faq.category === category);
             return (
-              <div key={category} className="space-y-6">
+              <ScrollReveal
+                key={`${category}-${searchQuery}`}
+                direction="up"
+                delay={Math.min(index * 0.05, 0.2)}
+                className="space-y-6"
+              >
                 <h3 className="text-xl font-bold text-on-surface dark:text-surface-bright border-l-4 border-secondary pl-3 uppercase tracking-wide text-xs">
                   {category} FAQ
                 </h3>
                 <FAQAccordion faqs={categoryFAQs} />
-              </div>
+              </ScrollReveal>
             );
           })}
         </div>
       ) : (
-        <div className="text-center py-20 bg-surface-container-low/20 rounded-2xl border border-outline-variant/20">
+        <ScrollReveal direction="fade" className="text-center py-20 bg-surface-container-low/20 rounded-2xl border border-outline-variant/20">
           <HelpCircle className="w-12 h-12 text-outline mx-auto mb-4" />
           <h3 className="text-lg font-bold text-on-surface">No matching questions found</h3>
           <p className="text-on-surface-variant text-sm mt-1">Try entering another query, or search for "GST", "Udyam", "PAN" etc.</p>
-        </div>
+        </ScrollReveal>
       )}
     </div>
   );

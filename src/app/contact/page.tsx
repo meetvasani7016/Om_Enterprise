@@ -2,6 +2,7 @@ import React from "react";
 import { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ContactForm } from "@/components/ContactForm";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { Phone, Mail, MapPin, Clock, MessageSquare, ExternalLink } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -17,11 +18,11 @@ export default function ContactPage() {
   )}`;
 
   return (
-    <div className="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12 pb-24">
+    <div className="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12 pb-24 overflow-hidden">
       <Breadcrumbs items={breadcrumbs} />
 
       {/* Header */}
-      <div className="mb-12 space-y-4 max-w-3xl">
+      <ScrollReveal direction="up" className="mb-12 space-y-4 max-w-3xl">
         <div className="inline-flex items-center gap-1.5 text-secondary font-bold text-xs uppercase tracking-wider">
           <Mail className="w-4 h-4" />
           <span>Get In Touch</span>
@@ -32,11 +33,11 @@ export default function ContactPage() {
         <p className="text-on-surface-variant dark:text-slate-400 text-base md:text-lg leading-relaxed">
           Reach out to our compliance consultants in Rajkot, Gujarat. Submit your inquiry online or connect with us directly on WhatsApp for instant assistance.
         </p>
-      </div>
+      </ScrollReveal>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
         {/* Contact Info Column */}
-        <div className="space-y-10">
+        <ScrollReveal direction="left" delay={0.15} className="space-y-10">
           <div className="space-y-6">
             <h3 className="text-2xl font-bold text-on-surface dark:text-surface-bright">
               Office Details & Location
@@ -124,12 +125,12 @@ export default function ContactPage() {
               </a>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* Form Column */}
-        <div className="relative">
+        <ScrollReveal direction="right" delay={0.2} className="relative">
           <ContactForm />
-        </div>
+        </ScrollReveal>
       </div>
     </div>
   );
