@@ -12,6 +12,7 @@ function isAuthorized(request: Request): boolean {
 const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL;
 const KV_URL = process.env.KV_REST_API_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+const IMMANUEL_KEY = "4eshqha5";
 
 async function getSubmissionsPath(): Promise<string> {
   const localPath = path.join(process.cwd(), "src/data/submissions.json");
@@ -36,6 +37,7 @@ async function getSubmissionsPath(): Promise<string> {
 }
 
 async function getSubmissions(): Promise<any[]> {
+  // 1. Vercel KV Primary
   if (KV_URL && KV_TOKEN) {
     try {
       const response = await fetch(`${KV_URL}`, {
@@ -58,7 +60,25 @@ async function getSubmissions(): Promise<any[]> {
     }
   }
 
-  // Fallback to filesystem (local or /tmp on Vercel)
+  // 2. Immanuel KV Secondary Fallback (Shared serverless cloud)
+  if (isVercel) {
+    try {
+      const response = await fetch(
+        `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${IMMANUEL_KEY}/submissions`,
+        { cache: "no-store" }
+      );
+      if (response.ok) {
+        const rawText = await response.json();
+        if (rawText && rawText !== "") {
+          return JSON.parse(rawText);
+        }
+      }
+    } catch (err) {
+      console.error("Immanuel KV read error:", err);
+    }
+  }
+
+  // 3. Local Filesystem Tertiary Fallback
   const filePath = await getSubmissionsPath();
   try {
     const fileContent = await fs.readFile(filePath, "utf8");
@@ -69,6 +89,7 @@ async function getSubmissions(): Promise<any[]> {
 }
 
 async function saveSubmissions(submissions: any[]): Promise<boolean> {
+  // 1. Vercel KV Primary
   if (KV_URL && KV_TOKEN) {
     try {
       const response = await fetch(`${KV_URL}`, {
@@ -87,7 +108,34 @@ async function saveSubmissions(submissions: any[]): Promise<boolean> {
     }
   }
 
-  // Fallback to filesystem
+  // 2. Immanuel KV Secondary Fallback
+  if (isVercel) {
+    try {
+      const encoded = encodeURIComponent(JSON.stringify(submissions));
+      if (encoded.length < 6000) {
+        const response = await fetch(
+          `https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${IMMANUEL_KEY}/submissions/${encoded}`,
+          { method: "POST" }
+        );
+        if (response.ok) {
+          const resVal = await response.json();
+          if (resVal === true || resVal === "true") {
+            // Cache locally in parallel
+            try {
+              const filePath = await getSubmissionsPath();
+              await fs.mkdir(path.dirname(filePath), { recursive: true });
+              await fs.writeFile(filePath, JSON.stringify(submissions, null, 2), "utf8");
+            } catch {}
+            return true;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Immanuel KV write error:", err);
+    }
+  }
+
+  // 3. Local Filesystem Tertiary Fallback
   const filePath = await getSubmissionsPath();
   try {
     await fs.mkdir(path.dirname(filePath), { recursive: true });
