@@ -10,6 +10,8 @@ function isAuthorized(request: Request): boolean {
 }
 
 const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL;
+const KV_URL = process.env.KV_REST_API_URL;
+const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
 async function getSubmissionsPath(): Promise<string> {
   const localPath = path.join(process.cwd(), "src/data/submissions.json");
@@ -31,6 +33,70 @@ async function getSubmissionsPath(): Promise<string> {
     }
   }
   return tempPath;
+}
+
+async function getSubmissions(): Promise<any[]> {
+  if (KV_URL && KV_TOKEN) {
+    try {
+      const response = await fetch(`${KV_URL}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${KV_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(["GET", "submissions"]),
+        cache: "no-store",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.result) {
+          return JSON.parse(data.result);
+        }
+      }
+    } catch (err) {
+      console.error("Vercel KV read error:", err);
+    }
+  }
+
+  // Fallback to filesystem (local or /tmp on Vercel)
+  const filePath = await getSubmissionsPath();
+  try {
+    const fileContent = await fs.readFile(filePath, "utf8");
+    return JSON.parse(fileContent);
+  } catch (err) {
+    return [];
+  }
+}
+
+async function saveSubmissions(submissions: any[]): Promise<boolean> {
+  if (KV_URL && KV_TOKEN) {
+    try {
+      const response = await fetch(`${KV_URL}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${KV_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(["SET", "submissions", JSON.stringify(submissions)]),
+      });
+      if (response.ok) {
+        return true;
+      }
+    } catch (err) {
+      console.error("Vercel KV write error:", err);
+    }
+  }
+
+  // Fallback to filesystem
+  const filePath = await getSubmissionsPath();
+  try {
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify(submissions, null, 2), "utf8");
+    return true;
+  } catch (err) {
+    console.error("Filesystem write error:", err);
+    return false;
+  }
 }
 
 export async function POST(request: Request) {
@@ -57,22 +123,16 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    // Get writeable submissions file path
-    const dataFilePath = await getSubmissionsPath();
-
-    let submissions = [];
-    try {
-      const fileContent = await fs.readFile(dataFilePath, "utf8");
-      submissions = JSON.parse(fileContent);
-    } catch (err) {
-      // If file doesn't exist yet, start with empty list
-    }
-
+    const submissions = await getSubmissions();
     submissions.push(newSubmission);
 
-    // Create containing folder if it doesn't exist and write database record
-    await fs.mkdir(path.dirname(dataFilePath), { recursive: true });
-    await fs.writeFile(dataFilePath, JSON.stringify(submissions, null, 2), "utf8");
+    const saved = await saveSubmissions(submissions);
+    if (!saved) {
+      return NextResponse.json(
+        { error: "Failed to write to submissions database." },
+        { status: 500 }
+      );
+    }
 
     // Output secure mock database log
     console.log("Master Database Sync: Client securely logged to database:", newSubmission);
@@ -94,16 +154,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
     }
 
-    const dataFilePath = await getSubmissionsPath();
-    let submissions = [];
-    try {
-      const fileContent = await fs.readFile(dataFilePath, "utf8");
-      submissions = JSON.parse(fileContent);
-    } catch (err) {
-      // File doesn't exist yet
-    }
+    const submissions = await getSubmissions();
     // Return submissions in reverse order so newest are on top
-    return NextResponse.json(submissions.reverse());
+    return NextResponse.json([...submissions].reverse());
   } catch (error) {
     console.error("Database read error:", error);
     return NextResponse.json(
@@ -130,18 +183,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const dataFilePath = await getSubmissionsPath();
-    let submissions = [];
-    try {
-      const fileContent = await fs.readFile(dataFilePath, "utf8");
-      submissions = JSON.parse(fileContent);
-    } catch (err) {
-      return NextResponse.json(
-        { error: "Database is empty." },
-        { status: 404 }
-      );
-    }
-
+    const submissions = await getSubmissions();
     const index = submissions.findIndex((sub: any) => sub.id === id);
     if (index === -1) {
       return NextResponse.json(
@@ -153,7 +195,13 @@ export async function PATCH(request: Request) {
     // Update status
     submissions[index].status = status;
 
-    await fs.writeFile(dataFilePath, JSON.stringify(submissions, null, 2), "utf8");
+    const saved = await saveSubmissions(submissions);
+    if (!saved) {
+      return NextResponse.json(
+        { error: "Failed to update submissions database." },
+        { status: 500 }
+      );
+    }
 
     console.log(`Master Database Update: Submission ${id} status updated to ${status}`);
 
