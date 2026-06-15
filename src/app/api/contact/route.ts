@@ -9,6 +9,30 @@ function isAuthorized(request: Request): boolean {
   return username === "admin" && password === "OmSupport2026!";
 }
 
+const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL;
+
+async function getSubmissionsPath(): Promise<string> {
+  const localPath = path.join(process.cwd(), "src/data/submissions.json");
+  if (!isVercel) {
+    return localPath;
+  }
+  
+  const tempPath = path.join("/tmp", "submissions.json");
+  try {
+    await fs.access(tempPath);
+  } catch {
+    // Seeding temp file from local bundled file
+    try {
+      const content = await fs.readFile(localPath, "utf8");
+      await fs.mkdir(path.dirname(tempPath), { recursive: true });
+      await fs.writeFile(tempPath, content, "utf8");
+    } catch (err) {
+      console.error("Error seeding temp path:", err);
+    }
+  }
+  return tempPath;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -33,8 +57,8 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    // Define path for local persistent storage
-    const dataFilePath = path.join(process.cwd(), "src/data/submissions.json");
+    // Get writeable submissions file path
+    const dataFilePath = await getSubmissionsPath();
 
     let submissions = [];
     try {
@@ -58,7 +82,7 @@ export async function POST(request: Request) {
     console.error("Database submission error:", error);
     return NextResponse.json(
       { error: "Internal Server Error occurred while writing to database." },
-      { status: 505 }
+      { status: 500 }
     );
   }
 }
@@ -70,7 +94,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
     }
 
-    const dataFilePath = path.join(process.cwd(), "src/data/submissions.json");
+    const dataFilePath = await getSubmissionsPath();
     let submissions = [];
     try {
       const fileContent = await fs.readFile(dataFilePath, "utf8");
@@ -106,7 +130,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const dataFilePath = path.join(process.cwd(), "src/data/submissions.json");
+    const dataFilePath = await getSubmissionsPath();
     let submissions = [];
     try {
       const fileContent = await fs.readFile(dataFilePath, "utf8");
